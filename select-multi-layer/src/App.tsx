@@ -35,17 +35,6 @@ function App() {
   };
 
   /**
-   * blur时
-   * 清空输入框，focus=false;
-   */
-  // const handleBlur = () => {
-  //   setValue("");
-  //   setTimeout(() => {
-  //     setFocus(false);
-  //   }, [500]);
-  // };
-
-  /**
    * 输入框内容变化时
    * 无值时，默认显示第一列
    * 有值时，根据输入框值查找节点
