@@ -1,30 +1,17 @@
-# React + TypeScript + Vite
+# focus输入框且输入框为空
+![focus输入框且输入框为空](./src/assets/1.png)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 展开有子级内容的选项
+![展开有子级内容的选项](./src/assets/2.png)
 
-Currently, two official plugins are available:
+# 选中后回填输入框，高亮对应选项(选中“白云区”)
+![选中后回填输入框，高亮对应选项](./src/assets/3.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+# 输入框搜索内容'su'（搜索无结果）
+![输入框搜索内容'su'（搜索无结果）](./src/assets/4.png)
 
-## Expanding the ESLint configuration
+# 输入框搜索内容'南'（搜索有结果）
+![输入框搜索内容'南'（搜索有结果）](./src/assets/5.png)
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
-
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+# 搜索的结果包含已经选中的值（选中“姑苏区”，搜索“苏”）
+![搜索的结果包含已经选中的值](./src/assets/6.png)
