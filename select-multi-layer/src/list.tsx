@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const List = ({ renderData, selectedKeys, setSelectedItem }) => {
+const List = ({ renderData, selectedKeys, handleSelect }) => {
   const [subRenderData, setSubRenderData] = useState([]);
 
   /**
@@ -8,7 +8,7 @@ const List = ({ renderData, selectedKeys, setSelectedItem }) => {
    */
   const handleClick = (item) => {
     if (!item.children.length) {
-      setSelectedItem(item);
+      handleSelect(item);
     } else {
       setSubRenderData(item.children);
     }
@@ -45,7 +45,7 @@ const List = ({ renderData, selectedKeys, setSelectedItem }) => {
           <List
             renderData={subRenderData}
             selectedKeys={selectedKeys}
-            setSelectedItem={setSelectedItem}
+            handleSelect={handleSelect}
           />
         </div>
       )}

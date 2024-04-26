@@ -11,7 +11,7 @@ const buildChildrenRecursive = (
   } else {
     const obj = {
       key: parentId
-        ? `${parentId}_${result.length + 1}`
+        ? `${parentId}-${result.length + 1}`
         : `${result.length + 1}`,
       label,
       children: [],
@@ -32,12 +32,12 @@ const buildChildrenRecursive = (
  * 		label: '广东省',
  * 		children: [
  *       {
- *         key: '1_1',
+ *         key: '1-1',
  *         label: '广州市'，
  *         children: [...]
  *       },
  *       {
- *         key: '1_2',
+ *         key: '1-2',
  *         label: '佛山市'，
  *         children: [...]
  *       },
@@ -93,13 +93,13 @@ export const findNodes = (data: [], str: string) => {
 
 /**
  * 根据节点的key，解析出从该节点开始到根节点路径的所有节点的key
- * 例：节点key为'1_1_2_3', 期望解析出['1', '1_1', '1_1_2', '1_1_2_3']
+ * 例：节点key为'1-1-2-3', 期望解析出['1', '1-1', '1-1-2', '1-1-2-3']
  */
 export const findPathKeys = (key: string) => {
-  const parts = key.split("_");
+  const parts = key.split("-");
   return parts.reduce((acc, part) => {
     if (acc.length > 0) {
-      acc.push(acc[acc.length - 1] + "_" + part);
+      acc.push(acc[acc.length - 1] + "-" + part);
     } else {
       acc.push(part);
     }
@@ -112,9 +112,9 @@ export const findPathKeys = (key: string) => {
  */
 export const constructNodePathToRoot = (node, treeData) => {
   /**
-   * 节点的key不包含'_'表示为第一层的节点，没有父节点，此时直接返回
+   * 节点的key不包含'-'表示为第一层的节点，没有父节点，此时直接返回
    */
-  if (!node.key.includes("_")) {
+  if (!node.key.includes("-")) {
     return [node];
   }
 
