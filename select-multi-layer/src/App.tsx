@@ -1,15 +1,15 @@
 import { useState } from "react";
-import Select from "./Select";
-import { city } from "./assets/data";
-import { translateOriginDataToTree } from "./assets/utils";
+import Select from "./components/Select";
+import { city } from "./data";
+import { translateOriginDataToTree } from "./utils";
 
 import "./App.css";
 
 function App() {
   const options = translateOriginDataToTree(city);
 
-  const defaultValue: string | number | undefined = "市中区";
-  /* 输入框的值 */
+  const defaultValue: string | number | undefined = '1-2-1';
+  /* 选中的值 */
   const [value, setValue] = useState<string | number | undefined>(defaultValue);
 
   const onChange = (selectedKey, selectedOption) => {

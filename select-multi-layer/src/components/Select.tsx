@@ -1,22 +1,26 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
-  findNodes,
+  findNodesByLabel,
   constructNodePathToRoot,
-  findPathKeys,
-} from "./assets/utils";
-import List from "./list";
+  insertFamily,
+  findNodesByKey,
+} from "../utils";
+import cloneDeep from 'lodash/cloneDeep'
+import List from "./List";
 
-import "./App.css";
+import "../App.css";
 
 
 function Select({ options, value, onChange }: { options: [], value?: string, onChange?: (selectedKey: string, selectedOption: {}) => void;}) {
+  const familyOptions = useRef(insertFamily(options))
+
   const [searchValue, setSearchValue] = useState(value);
   /* 输入框focus状态 */
   const [focus, setFocus] = useState(false);
   /* 列表要渲染的数据 */
   const [renderData, setRenderData] = useState<[] | null>([]);
-  /* 选中的值，只记录叶子节点的key */
-  const [selectedKey, setSelectedKey] = useState("");
+  /* 选中的值，只记录叶子节点 */
+  const [selectedOption, setSelectedOption] = useState("");
 
   /**
    * 有初始值时 
@@ -24,29 +28,22 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
    */
   useEffect(() => {
     if (value) {
-      const nodes = findNodes(options, value);
+      const nodes = findNodesByKey(familyOptions.current, value);
       if (nodes.length === 1 && nodes[0].children.length === 0) {
-        setSelectedKey(nodes[0].key);
+        const selectedItem = nodes[0];
+        setSelectedOption(selectedItem);
+        setSearchValue(selectedItem.label)
+        handleInputChange(selectedItem.label);
       }
     }
   }, [])
-
-  // 找到叶子节点到根节点的key链路
-  const selectedPathKeys = useMemo(() => {
-    return findPathKeys(selectedKey);
-  }, [selectedKey]);
 
   /**
    * focus时, 默认显示第一列子元素
    */
   const handleInputFocus = () => {
     setFocus(true);
-    setRenderData(options);
-
-    // 有初始值时，focus同时进行搜索
-    if (value) {
-      handleInputChange(value);
-    }
+    setRenderData(familyOptions.current);
   };
 
   /**
@@ -60,21 +57,20 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
     setSearchValue(value);
 
     if (!value) {
-      setRenderData(options);
+      setRenderData(familyOptions.current);
     }
 
     if (value) {
-      const nodes = findNodes(options, value);
+      const nodes = findNodesByLabel(familyOptions.current, value);
 
       if (nodes.length) {
-        /** 深复制简单做，避免因为引用对象改到其他搜索结果的children */
-        const copyNodes = JSON.parse(JSON.stringify(nodes));
+        /** 深复制，避免因为引用对象改到其他搜索结果的children */
+        const copyNodes = JSON.parse(JSON.stringify(nodes))
 
-        copyNodes.map((node) => {
-          const path = constructNodePathToRoot(node, options);
+        copyNodes.forEach((node) => {
+          const path = constructNodePathToRoot(node, familyOptions.current);
           /* 构建父路径label */
           node.label = path.map((item) => item.label).join("/");
-          return node;
         });
         setRenderData(copyNodes);
       } else {
@@ -87,11 +83,12 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
    * 点击某一项时
    */
   const handleSelect = (item) => {
-    setSelectedKey(item.key);
-    const value = item.label.split("/").pop();
-    setSearchValue(value);
+    const label = item.label.split("/").pop();
+    const resultItem = {...item, label};
+
+    setSearchValue(label);
+    setSelectedOption(resultItem);
     setFocus(false);
-    const resultItem = {...item, label: value};
     onChange?.(item.key, resultItem);
   };
 
@@ -103,7 +100,7 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
         placeholder="输入框"
         value={searchValue}
         onFocus={handleInputFocus}
-        onBlur={() => setFocus(false)}
+        // onBlur={() => setFocus(false)}
         onChange={(e) => handleInputChange(e.target.value)}
       />
 
@@ -113,7 +110,7 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
           {renderData ? (
             <List
               renderData={renderData}
-              selectedKeys={selectedPathKeys}
+              selectedKeys={selectedOption.family || []}
               handleSelect={handleSelect}
             />
           ) : (
