@@ -1,29 +1,50 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useImperativeHandle } from "react";
 import {
   findNodesByLabel,
   constructNodePathToRoot,
   insertFamily,
   findNodesByKey,
 } from "../utils";
-import cloneDeep from 'lodash/cloneDeep'
 import List from "./List";
+import { OptionType } from "../type";
 
 import "../App.css";
 
+interface PropsType {
+  options: OptionType[];
+  value?: string;
+  onChange?: (selectedKey: string, selectedOption: OptionType) => void;
+}
 
-function Select({ options, value, onChange }: { options: [], value?: string, onChange?: (selectedKey: string, selectedOption: {}) => void;}) {
-  const familyOptions = useRef(insertFamily(options))
+interface RefType {
+  getValue: () => OptionType | null;
+  focus: () => void;
+}
+
+const Select: React.ForwardRefRenderFunction<RefType, PropsType> = (
+  { options, value, onChange },
+  ref
+) => {
+  // 初始化，插入family字段记录每个节点到根节点的key路径
+  const familyOptions = useRef<OptionType[]>(insertFamily(options));
 
   const [searchValue, setSearchValue] = useState(value);
   /* 输入框focus状态 */
   const [focus, setFocus] = useState(false);
   /* 列表要渲染的数据 */
-  const [renderData, setRenderData] = useState<[] | null>([]);
+  const [renderData, setRenderData] = useState<OptionType[] | null>([]);
   /* 选中的值，只记录叶子节点 */
-  const [selectedOption, setSelectedOption] = useState("");
+  const [selectedOption, setSelectedOption] = useState<OptionType>();
+
+  useImperativeHandle(ref, () => ({
+    getValue: () => {
+      return selectedOption || null;
+    },
+    focus: handleInputFocus,
+  }));
 
   /**
-   * 有初始值时 
+   * 有初始值时
    * 判断如果值是叶子节点，是则选中它，否则不选中
    */
   useEffect(() => {
@@ -32,11 +53,11 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
       if (nodes.length === 1 && nodes[0].children.length === 0) {
         const selectedItem = nodes[0];
         setSelectedOption(selectedItem);
-        setSearchValue(selectedItem.label)
+        setSearchValue(selectedItem.label);
         handleInputChange(selectedItem.label);
       }
     }
-  }, [])
+  }, []);
 
   /**
    * focus时, 默认显示第一列子元素
@@ -65,12 +86,12 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
 
       if (nodes.length) {
         /** 深复制，避免因为引用对象改到其他搜索结果的children */
-        const copyNodes = JSON.parse(JSON.stringify(nodes))
+        const copyNodes = JSON.parse(JSON.stringify(nodes));
 
-        copyNodes.forEach((node) => {
+        copyNodes.forEach((node: OptionType) => {
           const path = constructNodePathToRoot(node, familyOptions.current);
           /* 构建父路径label */
-          node.label = path.map((item) => item.label).join("/");
+          node.label = path.map((item) => item?.label).join("/");
         });
         setRenderData(copyNodes);
       } else {
@@ -82,14 +103,16 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
   /**
    * 点击某一项时
    */
-  const handleSelect = (item) => {
+  const handleSelect = (item: OptionType) => {
     const label = item.label.split("/").pop();
-    const resultItem = {...item, label};
+    if (label) {
+      const resultItem = { ...item, label };
 
-    setSearchValue(label);
-    setSelectedOption(resultItem);
-    setFocus(false);
-    onChange?.(item.key, resultItem);
+      setSearchValue(label);
+      setSelectedOption(resultItem);
+      setFocus(false);
+      onChange?.(item.key, resultItem);
+    }
   };
 
   return (
@@ -100,7 +123,6 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
         placeholder="输入框"
         value={searchValue}
         onFocus={handleInputFocus}
-        // onBlur={() => setFocus(false)}
         onChange={(e) => handleInputChange(e.target.value)}
       />
 
@@ -110,7 +132,7 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
           {renderData ? (
             <List
               renderData={renderData}
-              selectedKeys={selectedOption.family || []}
+              selectedKeys={selectedOption?.family || []}
               handleSelect={handleSelect}
             />
           ) : (
@@ -120,6 +142,6 @@ function Select({ options, value, onChange }: { options: [], value?: string, onC
       )}
     </>
   );
-}
+};
 
-export default Select;
+export default React.forwardRef(Select);

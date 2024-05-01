@@ -1,3 +1,5 @@
+import { OptionType } from "./type";
+
 /**
  * 实现将原始数据转换为树形结构的函数
  *
@@ -21,7 +23,7 @@
  * ]
  */
 export const translateOriginDataToTree = (data: string[]) => {
-  const result = data.reduce((acc, item) => {
+  const result = data.reduce<OptionType[]>((acc, item) => {
     const arr = item.split("/");
     buildChildrenRecursive(arr, "", acc);
     return acc;
@@ -33,25 +35,27 @@ export const translateOriginDataToTree = (data: string[]) => {
 const buildChildrenRecursive = (
   arr: string[],
   parentId: string,
-  result: []
+  result: OptionType[]
 ) => {
   const label = arr.shift();
 
-  const existedObj = result.find((item) => item.label === label);
-  if (existedObj) {
-    buildChildrenRecursive(arr, existedObj.key, existedObj.children);
-  } else {
-    const obj = {
-      key: parentId
-        ? `${parentId}-${result.length + 1}`
-        : `${result.length + 1}`,
-      label,
-      children: [],
-    };
-    if (arr.length) {
-      buildChildrenRecursive(arr, obj.key, obj.children);
+  if (label) {
+    const existedObj = result.find((item) => item.label === label);
+    if (existedObj) {
+      buildChildrenRecursive(arr, existedObj.key, existedObj.children);
+    } else {
+      const obj = {
+        key: parentId
+          ? `${parentId}-${result.length + 1}`
+          : `${result.length + 1}`,
+        label,
+        children: [],
+      };
+      if (arr.length) {
+        buildChildrenRecursive(arr, obj.key, obj.children);
+      }
+      result.push(obj);
     }
-    result.push(obj);
   }
 };
 
@@ -59,7 +63,7 @@ const buildChildrenRecursive = (
 /**
  * Select组件内部对树结构数据插入family字段，记录每个节点到根节点的key路径
  */
-export const insertFamily = (data) => {
+export const insertFamily = (data: OptionType[]) => {
   const result = data.map((item) => {
     item.family = [item.key];
     buildFamilyRecursive(item.family, item.children);
@@ -71,7 +75,7 @@ export const insertFamily = (data) => {
 
 const buildFamilyRecursive = (
   parentFamily: string[],
-  children: []
+  children: OptionType[],
 ) => {
   if (children.length) {
     return children.map((item) => {
@@ -87,8 +91,8 @@ const buildFamilyRecursive = (
 /**
  * 通过key查找树中包含该字符串的所有树节点
  */
-export const findNodesByKey = (data: [], key: string) => {
-  const result = [];
+export const findNodesByKey = (data: OptionType[], key: string) => {
+  const result = [] as OptionType[];
   data.forEach((item) => {
     findTreeNodeByKey(item, key, result);
   });
@@ -100,11 +104,11 @@ export const findNodesByKey = (data: [], key: string) => {
  * 通过key查找树节点
  */
 const findTreeNodeByKey = (
-  node: { key: string; label: string; family: string[], children: [] },
+  node: OptionType,
   key: string,
-  resultNodes: []
-) => {
-  if (node.family.includes(key)) {
+  resultNodes: OptionType[],
+): OptionType | null => {
+  if (node.family?.includes(key)) {
     resultNodes.push(node);
   }
 
@@ -124,8 +128,8 @@ const findTreeNodeByKey = (
 /**
  * 通过label查找树中包含该字符串的所有树节点
  */
-export const findNodesByLabel = (data: [], str: string) => {
-  const result = [];
+export const findNodesByLabel = (data: OptionType[], str: string) => {
+  const result = [] as OptionType[];
   data.forEach((item) => {
     findTreeNodeByLabel(item, str, result);
   });
@@ -137,10 +141,10 @@ export const findNodesByLabel = (data: [], str: string) => {
  * 通过label查找树节点
  */
 const findTreeNodeByLabel = (
-  node: { key: string; label: string; children: [] },
+  node: OptionType,
   str: string,
-  resultNodes: []
-) => {
+  resultNodes: OptionType[]
+): OptionType | null => {
   if (node.label.includes(str)) {
     resultNodes.push(node);
   }
@@ -176,7 +180,7 @@ const findTreeNodeByLabel = (
 /**
  * 构建某个节点到根节点的路径
  */
-export const constructNodePathToRoot = (node, treeData) => {
+export const constructNodePathToRoot = (node: OptionType, treeData: OptionType[]) => {
   /**
    * 节点的key不包含'-'表示为第一层的节点，没有父节点，此时直接返回
    */
@@ -203,7 +207,7 @@ export const constructNodePathToRoot = (node, treeData) => {
   keys.pop();
   while (keys.length) {
     const key = keys.shift();
-    const parentNode = rootNode.children.find((item) => item.key === key);
+    const parentNode = rootNode?.children.find((item) => item.key === key);
     path.push(parentNode);
   }
 
