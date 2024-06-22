@@ -29,8 +29,9 @@ const Client = <S extends {}>(
 
   return async function fetch<U extends keyof S, P = S[U]>(
     url: Exclude<U, number | symbol>,
-    params: P extends Record<"params", unknown> ? P["params"] : undefined
+    ...args: P extends Record<"params", unknown> ? [P["params"]] : []
   ) {
+    const params = args[0];
     let [requestMethod, requestUrl] = url.split(" ");
     let requestParams = {};
 
@@ -45,7 +46,9 @@ const Client = <S extends {}>(
         requestMethod === "GET" ? { params: newParams } : { data: newParams };
     }
 
-    return await instance<P extends Record<"response", unknown> ? P["response"] : undefined>({
+    return await instance<
+      P extends Record<"response", unknown> ? P["response"] : undefined
+    >({
       method: requestMethod,
       url: requestUrl,
       ...(requestParams ?? {}),

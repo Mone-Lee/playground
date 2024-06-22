@@ -1,43 +1,41 @@
-// 翻页类接口返回数据体
-export interface CommonListResponse<T = unknown> {
-  msg: string;
-  trace_id: string;
-  code: string;
-  data: {
-    list: T[];
-    page_info: {
-      last_page: boolean;
-      page_num: number;
-      page_size: number;
-      total: number;
+interface ApiDocSchema {
+  "GET /api/ping": {
+    response: {
+      name: string;
     };
   };
-  success: boolean;
-}
-
-export interface CommonResponse<T = unknown> {
-  msg: string;
-  trace_id: string;
-  code: string;
-  data: T;
-  success: boolean;
-}
-
-export interface ApiDocSchema {
-  /** 广播 - 获取列表 */
-  "POST /admin/api/broadcast/query": {
+  "GET /api/{id}": {
     params: {
-      page: number;
-      pageSize: number;
-      status?: string;
-      keyword?: string;
+      type: string;
     };
-    response: CommonListResponse<{ key: string; label: string }>;
-  };
-  /** 广播 - 删除 */
-  "DELETE /admin/api/broadcast/{broadcastId}": {
-    params: { broadcastId: string };
-    response: CommonResponse<boolean>;
+    response: {
+      name: string;
+    };
   };
 }
 
+type ExtractStringTempParameters<S extends string> =
+  S extends `${string}/{${infer Param}}${infer Suffix}`
+    ? {
+        [Key in Param]: string | number;
+      } & ExtractStringTempParameters<`/${Suffix}`>
+    : unknown;
+
+// type Params =
+//   ExtractStringTempParameters<"GET /api/{id}">;
+
+type RequestSchema = {
+  [ApiRequestKey in keyof ApiDocSchema]: ApiDocSchema[ApiRequestKey] extends {
+    params: infer P;
+  }
+    ? Omit<ApiDocSchema[ApiRequestKey], 'params'> & {
+          params: P & ExtractStringTempParameters<ApiRequestKey>;
+        }
+      : ExtractStringTempParameters<ApiRequestKey> extends { [key: string]: string | number } // 如果请求方法没有定义 params, 则看看请求路径上是否有参数，有则提出添加到 params
+      ? ApiDocSchema[ApiRequestKey] & {
+          params: ExtractStringTempParameters<ApiRequestKey>;
+        }
+    : ApiDocSchema[ApiRequestKey];
+};
+
+export type SchemaType = RequestSchema;

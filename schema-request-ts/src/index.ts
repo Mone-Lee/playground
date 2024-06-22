@@ -1,12 +1,17 @@
 import Client from "./client";
-import { ApiDocSchema } from "./schema";
+import { SchemaType } from "./schema";
 
-const client = Client<ApiDocSchema>({
+const client = Client<SchemaType>({
   timeout: 1000,
 })
 
-const res = await client('DELETE /admin/api/broadcast/{broadcastId}', {
-  broadcastId: '1234',
+client('POST /api/ping')
+client('GET /api/ping')
+client('GET /api/{id}', {
+  id: 1,
+  type: '2'
 })
-res.data.data // CommonResponse<boolean>.data: boolean
+client('GET /api/{id}', {
+  type: '2'
+})
 
